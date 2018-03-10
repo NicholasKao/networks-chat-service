@@ -21,12 +21,12 @@ port = int(sys.argv[1])
 if port < 1024:
 	print("Ivalid port number")
 else:
-	print("Waiting for connections at port %s" % port)
+	#print("Waiting for connections at port %s" % port)
 
 	# format address and bind the socket to the address, allowing 100 concurrent connections
 	address = ('localhost', port)
 	mySocket.bind(address)
-	print("Server bound to address: " + address[0] + ":" + str(address[1]))
+	#print("Server bound to address: " + address[0] + ":" + str(address[1]))
 	mySocket.listen(100)
 
 	#initialize list of inputs, outputs, topics, messages
@@ -54,7 +54,7 @@ else:
 					if "destination" in data:
 						topic = data['message']['topic']
 						message = data['message']['text']
-						messages.append("%s: %s" % (topic, message))
+						messages.append(((str(topic) + ":" + str(message)), readable))
 						if data:
 							continue
 						else:
@@ -63,9 +63,9 @@ else:
 					else:
 						topic = data['topics']
 						if topic in topics:
-							topics[topic].append(clientAddress)
+							topics[topic].append(readable)
 						else: 
-							topics[topic] = [clientAddress]
+							topics[topic] = [readable]
 				# on a disconnect, remove the connection from the inputs and outputs
 				else:
 					outputs.remove(readable)
@@ -73,20 +73,20 @@ else:
 		# while there are messages to be sent
 		while messages:
 			# break the messages into topic and message
-			data = messages[0].split(":")
+			data = messages[0]
+			text = data[0]
+			sender = data[1]
 			messages = messages[1:]
-			topic = data[0]
-			message = data[1]
-			#iterate through all the connections being transmitted to
-			for writable in ws:
-				# iterate through the connections and create a list of which clients to send the message to
-				for address in topics[topic]:
-					if writable.getpeername() == address:
-						toSend.append(writable)
+			text = text.split(":")
+			topic = text[0]
+			message = text[1]
+			toSend = topics[topic]
 			# for each client to send the message to, format it in json and send it
-			for client in toSend:
-				toSend = {"source":{"ip":'hostname', "port":port},"destination":{"ip":writable.getpeername()[0],"port":writable.getpeername()[1]},"message":{"topic":topic, "text":message}}
-				client.sendall(json.dumps(toSend).encode())
+			for dest in toSend:
+				if dest == sender:
+					continue
+				toSend = {"source":{"ip":'hostname', "port":port},"destination":{"ip":dest.getpeername()[0],"port":dest.getpeername()[1]},"message":{"topic":topic, "text":message}}
+				dest.sendall(json.dumps(toSend).encode())
 
 
 
