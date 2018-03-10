@@ -29,7 +29,7 @@ if mode == '-direct': #operating in direct mode
 		address = address.split(':')
 		address = (address[0],int(address[1]))
 	if port == "0": #operating in client mode
-		print("Client using address: " + address[0] + ":" + str(address[1]))
+		#print("Client using address: " + address[0] + ":" + str(address[1]))
 		mySocket.connect(address)
 		try:
 			#until disconnecting, take keyboard input, format it correctly, and send it to the other client
@@ -42,7 +42,6 @@ if mode == '-direct': #operating in direct mode
 						mySocket.close()
 						break
 					toSend['message']['text'] = message
-					print(toSend)
 					toSend = json.dumps(toSend).encode()
 					mySocket.sendall(toSend)
 				if mySocket in rs: #if the socket has incoming messages
@@ -64,16 +63,16 @@ if mode == '-direct': #operating in direct mode
 	elif int(port) > 1023: #operating in server mode
 		#bind to the supplied address and wait for a single connection
 		mySocket.bind(address)
-		print("Server bound to address: " + address[0] + ":" + str(address[1]))
+		#print("Server bound to address: " + address[0] + ":" + str(address[1]))
 		mySocket.listen(1)
 
 		#wait until a connection is accepted
 		while True:
-			print("Server is waiting for a client to connect")
+			#print("Server is waiting for a client to connect")
 			connection, clientAddress = mySocket.accept()
 
 			try:
-				print("Connection to client at address: " + clientAddress[0] + ":" + str(clientAddress[1]) + "\n")
+				#print("Connection to client at address: " + clientAddress[0] + ":" + str(clientAddress[1]) + "\n")
 				#same control flow and behavior as lines 36-58 above
 				while True:
 					toSend = {"source":{"ip":'127.0.0.1', "port":address[1]},"destination":{"ip":clientAddress[0],"port":clientAddress[1]},"message":{"topic":'direct'}}
@@ -85,7 +84,6 @@ if mode == '-direct': #operating in direct mode
 							mySocket.close()
 							quit()
 						toSend['message']['text'] = message
-						print(toSend)
 						toSend = json.dumps(toSend).encode()
 						connection.sendall(toSend)
 					elif connection in rs:
@@ -102,7 +100,7 @@ if mode == '-direct': #operating in direct mode
 							break
 			# if the client disconnects, due to quiting or ketboard interrupt, print information and close the connection
 			finally:
-				print("Closing connection to client at address: " + clientAddress[0] + ":" + str(clientAddress[1]))
+				#print("Closing connection to client at address: " + clientAddress[0] + ":" + str(clientAddress[1]))
 				connection.close()
 
 	else: #trying to use a port number that is already assigned
@@ -132,7 +130,6 @@ elif mode == '-topic':
 					mySocket.close()
 					break
 				toSend['message']['text'] = message
-				print(toSend)
 				mySocket.sendall(json.dumps(toSend).encode())
 			if mySocket in rs:
 				data = mySocket.recv(200).decode('utf-8')
